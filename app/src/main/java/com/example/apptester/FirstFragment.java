@@ -7,11 +7,10 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.apptester.databinding.FragmentFirstBinding;
 
-public class MythBusterFirstScreen extends Fragment {
+public class FirstFragment extends Fragment {
 
     private FragmentFirstBinding binding;
 
@@ -32,17 +31,13 @@ public class MythBusterFirstScreen extends Fragment {
         binding.checkButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                checkTruth();
+                int truthID = checkTruth();
+                binding.truthText.setText(Data.interpretTruthRating(truthID));
+                if (truthID == -1) {
+                    Data.factList.add(binding.editTextText.getText().toString());
+                }
             }
         });
-
-//        binding.nextButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                NavHostFragment.findNavController(MythBusterFirstScreen.this)
-//                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
-//            }
-//        });
     }
 
     @Override
@@ -51,8 +46,8 @@ public class MythBusterFirstScreen extends Fragment {
         binding = null;
     }
 
-    private void checkTruth() {
-
+    private int checkTruth() {
+        return 0;
     }
 
 }

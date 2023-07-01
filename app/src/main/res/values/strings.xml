@@ -43,4 +43,8 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
+    <string name="name_text">No Name</string>
+    <string name="token_text">0</string>
+    <string name="rank_text">Curious Voter</string>
+    <string name="truth_text"> </string>
 </resources>
