@@ -8,11 +8,11 @@
     <item
         android:id="@+id/myth_buster"
         android:icon="@drawable/myth_buster"
-        android:title="Myth Buster" />
+        android:title="Fact Checker" />
     <item
         android:id="@+id/hottest_facts"
-        android:icon="@drawable/hottest_facts"
-        android:title="Hottest Facts" />
+        android:icon="@drawable/community_polls"
+        android:title="Community Polls" />
     <item
         android:id="@+id/profile"
         android:icon="@drawable/profile"

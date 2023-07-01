@@ -35,7 +35,7 @@ public class ThirdFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         binding.nameText.setText(Data.name);
-        binding.tokenText.setText(String.format("%d", Data.tokenCount));
+        binding.tokenText.setText(String.format("%d", Data.credits));
         binding.rankText.setText(Data.getVotingRank());
     }
 

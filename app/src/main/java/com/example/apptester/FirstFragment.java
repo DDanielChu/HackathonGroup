@@ -13,15 +13,12 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.apptester.databinding.FragmentFirstBinding;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 public class FirstFragment extends Fragment {
 
@@ -41,16 +38,33 @@ public class FirstFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        binding.checkButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                int truthID = checkTruth();
-                binding.truthText.setText(Data.interpretTruthRating(truthID));
-                if (truthID == -1) {
-                    Data.factList.add(binding.editTextText.getText().toString());
+        readFromFile();
+
+        binding.checkButton.setOnClickListener(this::checkFact);
+    }
+
+    private void readFromFile() {
+        try {
+            AssetManager assetManager = requireActivity().getAssets();
+            InputStream inputStream = assetManager.open("LiarDataSet.txt");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Split the line by the "?!" delimiter
+                String[] parts = line.split("\\?!,");
+                if (parts.length == 2) {
+                    // Extract the statement and authenticity rating
+                    String statement = parts[1].trim();
+                    int authenticityRating = Integer.parseInt(parts[0]);
+
+                    // Create a Statement object and add it to the list
+                    Data.statements.add(new Statement(statement, authenticityRating));
                 }
             }
-        });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -59,84 +73,48 @@ public class FirstFragment extends Fragment {
         binding = null;
     }
 
-    private int checkTruth() {
-//        String filePath = "LiarDataSet.txt";
-        String userQuestion = "The economic turnaround started at the end of my term."; // Replace with the user's input
+    private void checkFact(View view) {
+        String enteredFact = binding.editTextText.getText().toString();
 
-                List<Statement> statements = new ArrayList<>();
+        if (enteredFact.equals("")) {
+            Snackbar.make(view, "Please enter a fact before checking.", Snackbar.LENGTH_SHORT)
+                    .setAnchorView(R.id.bottomNavigationView)
+                    .setAction("Action", null).show();
+            return;
+        }
 
-                try {
-                    AssetManager assetManager = requireActivity().getAssets();
-                    InputStream inputStream = assetManager.open("LiarDataSet.txt");
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        // Split the line by the "?!" delimiter
-                        String[] parts = line.split("\\?!,");
-                        if (parts.length == 2) {
-                            // Extract the statement and authenticity rating
-                            String statement = parts[1].trim();
-                            int authenticityRating = Integer.parseInt(parts[0]);
-
-                            // Create a Statement object and add it to the list
-                            statements.add(new Statement(statement, authenticityRating));
-                        }
-                    }
-
-                    // Perform text similarity comparison with the user's input
-                    JaccardSimilarity jaccardSimilarity = new JaccardSimilarity();
-                    Statement maxStatement = null;
-                    double maxSimilarity = 0;
-                    for (Statement statement : statements) {
-                        double similarity = jaccardSimilarity.apply(statement.getStatement(), userQuestion);
-
-                        if (similarity > maxSimilarity) {
-                            maxSimilarity = similarity;
-                            maxStatement = statement;
-                        }
-
-                        // // Print the statement and authenticity rating
-                        // System.out.println("Statement: " + statement.getStatement());
-                        // System.out.println("Authenticity Rating: " + statement.getAuthenticityRating());
-                        // System.out.println("Similarity with User's Question: " + similarity);
-                        // System.out.println();
-                    }
-
-                    if (maxSimilarity < 0.80){
-                        System.out.print ("Sorry, that isn't in our data base");
-                        return -1;
-                    }
-                    else{
-                        System.out.println("Most similar: " + maxSimilarity);
-                        System.out.println("Statement: " + maxStatement.getStatement() );
-                        System.out.println("Authenticity Rating: " + maxStatement.getAuthenticityRating());
-                        return maxStatement.getAuthenticityRating();
-
-                    }
-                } catch (IOException e) {
-                    System.err.println("Error reading file: " + e.getMessage());
-                }
-
-                return -3;
-
+        int truthID = checkTruth(enteredFact);
+        binding.truthText.setText(Data.interpretTruthRating(truthID));
+        if (truthID == -1) {
+            Data.pollStatements.add(new PollStatement(enteredFact, false));
+        }
     }
 
-    static class Statement {
-        private String statement;
-        private int authenticityRating;
+    private int checkTruth(String fact) {
 
-        public Statement(String statement, int authenticityRating) {
-            this.statement = statement;
-            this.authenticityRating = authenticityRating;
+        // Perform text similarity comparison with the user's input
+        JaccardSimilarity jaccardSimilarity = new JaccardSimilarity();
+        Statement maxStatement = null;
+        double maxSimilarity = 0;
+        for (Statement statement : Data.statements) {
+            double similarity = jaccardSimilarity.apply(statement.getStatement(), fact);
+
+            if (similarity > maxSimilarity) {
+                maxSimilarity = similarity;
+                maxStatement = statement;
+            }
+
+            // // Print the statement and authenticity rating
+            // System.out.println("Statement: " + statement.getStatement());
+            // System.out.println("Authenticity Rating: " + statement.getAuthenticityRating());
+            // System.out.println("Similarity with User's Question: " + similarity);
+            // System.out.println();
         }
 
-        public String getStatement() {
-            return statement;
-        }
-
-        public int getAuthenticityRating() {
-            return authenticityRating;
-        }
+        if (maxSimilarity < 0.80)
+            return -1;
+        else
+            return maxStatement.getAuthenticityRating();
     }
 
 }
